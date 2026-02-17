@@ -3,191 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FAZE | AI Research</title>
+    <title>FazeAI | Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #1f1f1f; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .fade-enter { animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(10px); }
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+        /* Bubbles */
+        .bubble-scientist { background: #eff6ff; border: 1px solid #bfdbfe; color: #172554; border-radius: 4px 20px 20px 20px; }
+        .bubble-safety { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; border-radius: 20px 4px 20px 20px; }
+        .bubble-logic { background: #faf5ff; border: 1px solid #e9d5ff; color: #581c87; border-radius: 20px 20px 20px 4px; }
+        .bubble-user { background: #f3f4f6; color: #1f2937; border-radius: 20px 20px 4px 20px; }
         
-        /* Gradients for the "Gemini" feel */
-        .text-gradient { background: linear-gradient(90deg, #4285F4, #9B72CB, #D96570); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .bg-gradient-icon { background: linear-gradient(135deg, #4285F4, #D96570); }
-        
-        /* Animations */
-        .fade-in { animation: fadeIn 0.5s ease-out forwards; opacity: 0; transform: translateY(10px); }
-        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
-        
-        .bubble-scientist { background: #E8F0FE; color: #174EA6; border-radius: 20px 20px 20px 4px; }
-        .bubble-safety { background: #FCE8E6; color: #C5221F; border-radius: 20px 20px 4px 20px; margin-left: auto; }
-        .bubble-logic { background: #F3E8FD; color: #8430CE; border-radius: 20px 20px 20px 20px; }
+        .brand-gradient { background: linear-gradient(135deg, #2563eb, #db2777); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden selection:bg-blue-100">
+<body class="h-screen flex flex-col overflow-hidden relative">
 
-    <header class="flex justify-between items-center p-6 bg-white z-10">
-        <button class="p-2 -ml-2 rounded-full hover:bg-gray-100 transition"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
-        <div class="text-xl font-bold tracking-tight">Faze<span class="text-blue-500">AI</span></div>
-        <div class="w-10 h-10 rounded-full bg-gradient-icon flex items-center justify-center text-white font-bold shadow-md">S</div>
-    </header>
-
-    <div id="main-container" class="flex-1 flex flex-col relative overflow-hidden">
-        
-        <div id="welcome-screen" class="flex-1 flex flex-col p-6 transition-opacity duration-500">
-            <h1 class="text-5xl font-bold text-[#c4c7c5] mb-2 tracking-tight">Hi <span class="text-gradient">Sarav</span></h1>
-            <h2 class="text-5xl font-bold text-[#444746] mb-12 tracking-tight">What shall we research?</h2>
-
-            <div class="grid grid-cols-2 gap-4">
-                <button onclick="quickStart('Future of Biotechnology')" class="text-left p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all border border-transparent hover:border-gray-200">
-                    <span class="block text-xl mb-2">🧬</span>
-                    <span class="font-medium text-sm text-gray-700">Explore Biotech</span>
-                </button>
-                <button onclick="quickStart('Risks of Artificial Intelligence')" class="text-left p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all border border-transparent hover:border-gray-200">
-                    <span class="block text-xl mb-2">🛡️</span>
-                    <span class="font-medium text-sm text-gray-700">Analyze AI Safety</span>
-                </button>
-                <button onclick="quickStart('Quantum Computing')" class="text-left p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all border border-transparent hover:border-gray-200">
-                    <span class="block text-xl mb-2">⚛️</span>
-                    <span class="font-medium text-sm text-gray-700">Quantum Logic</span>
-                </button>
-                <button onclick="quickStart('Sustainable Energy')" class="text-left p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all border border-transparent hover:border-gray-200">
-                    <span class="block text-xl mb-2">🌱</span>
-                    <span class="font-medium text-sm text-gray-700">Green Energy</span>
-                </button>
+    <div id="auth-screen" class="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center p-6 transition-opacity duration-300">
+        <div class="w-full max-w-md space-y-6">
+            <div class="text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-3xl mb-4 shadow-sm">✨</div>
+                <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Faze<span class="text-blue-600">AI</span></h1>
+                <p class="text-xs text-gray-500 font-medium mt-2">SECURE RESEARCH TERMINAL</p>
             </div>
+            <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100 space-y-4 shadow-sm">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Identify Yourself</label>
+                    <input id="researcher-name" type="text" placeholder="Enter Name..." class="w-full p-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none font-medium">
+                </div>
+                <div class="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200">
+                    <input type="checkbox" id="tos-check" class="w-5 h-5 text-blue-600 rounded border-gray-300" onchange="checkAuth()">
+                    <label for="tos-check" class="text-xs text-gray-600 font-medium cursor-pointer">I agree to Safety Protocols (No Harm/Violence)</label>
+                </div>
+            </div>
+            <button id="start-btn" onclick="enterSystem()" disabled class="w-full py-4 rounded-xl bg-gray-200 text-gray-400 font-bold text-sm transition-all shadow-none">ENTER TERMINAL</button>
         </div>
-
-        <div id="chat-feed" class="hidden absolute inset-0 flex flex-col p-4 overflow-y-auto no-scrollbar space-y-6 pb-32">
-            </div>
-
-        <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-white via-white to-transparent pointer-events-none z-10"></div>
     </div>
 
-    <div class="p-4 bg-white z-20">
-        <div class="max-w-4xl mx-auto relative flex items-center bg-[#F0F4F9] rounded-full px-2 py-2 shadow-sm focus-within:bg-white focus-within:shadow-md transition-all duration-300 border border-transparent focus-within:border-gray-200">
-            <button class="p-3 text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded-full transition"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
-            
-            <input id="user-input" type="text" placeholder="Ask Faze..." class="flex-1 bg-transparent border-none outline-none text-gray-800 text-lg px-2 placeholder-gray-500 font-medium">
-            
-            <button id="send-btn" class="p-3 bg-white text-blue-600 rounded-full shadow-sm hover:shadow-md hover:bg-blue-50 transition transform hover:scale-105 group">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="group-hover:animate-spin">
-                    <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" fill="url(#sparkle)" stroke="none"/>
-                    <defs><linearGradient id="sparkle" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse"><stop stop-color="#4285F4"/><stop offset="1" stop-color="#D96570"/></linearGradient></defs>
-                </svg>
-            </button>
+    <div id="app-ui" class="hidden flex-1 flex flex-col h-full relative">
+        
+        <header class="flex justify-between items-center p-4 bg-white/90 backdrop-blur border-b border-gray-100 z-10">
+            <button onclick="toggleMenu()" class="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+            <div class="flex items-center gap-2">
+                <span class="font-bold text-lg tracking-tight">Faze</span>
+                <span id="status-badge" class="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[9px] font-bold tracking-widest uppercase">ONLINE</span>
+            </div>
+            <button onclick="logout()" id="user-badge" class="w-9 h-9 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold text-sm shadow-md flex items-center justify-center hover:scale-105 transition">U</button>
+        </header>
+
+        <div id="menu-drawer" class="fixed inset-y-0 left-0 w-64 bg-white shadow-2xl transform -translate-x-full transition-transform duration-300 z-50 p-6 flex flex-col gap-4">
+            <h2 class="font-bold text-xl mb-4">Settings</h2>
+            <button onclick="location.reload()" class="p-3 bg-gray-100 rounded-lg text-left text-sm font-medium hover:bg-gray-200">🔄 Hard Reset</button>
+            <button onclick="toggleMenu()" class="p-3 bg-red-50 text-red-600 rounded-lg text-left text-sm font-medium">Close Menu</button>
+            <div class="mt-auto text-[10px] text-gray-400">v8.0.2 Stable Build</div>
         </div>
-        <div class="text-center mt-2">
-            <p class="text-[10px] text-gray-400 font-medium">Faze may display inaccurate info, including about people, so double-check its responses.</p>
+
+        <div id="welcome-hero" class="flex-1 flex flex-col px-6 pt-12 transition-all duration-500">
+            <h1 class="text-4xl font-bold text-gray-300 mb-1 tracking-tight">Hi, <span id="display-name" class="brand-gradient">Researcher</span></h1>
+            <h2 class="text-4xl font-bold text-gray-800 mb-8 tracking-tight">Start a loop.</h2>
+            
+            <div class="grid grid-cols-1 gap-3">
+                <button onclick="quickPrompt('Invent a clean energy source')" class="group p-4 bg-gray-50 rounded-2xl hover:bg-blue-50 transition border border-transparent hover:border-blue-100 text-left flex items-center gap-3">
+                    <span class="text-2xl group-hover:scale-110 transition">🌱</span>
+                    <div><div class="text-sm font-bold text-gray-800">Clean Energy</div><div class="text-xs text-gray-500">Sustainable power grid</div></div>
+                </button>
+                <button onclick="quickPrompt('Design a medical nanobot')" class="group p-4 bg-gray-50 rounded-2xl hover:bg-purple-50 transition border border-transparent hover:border-purple-100 text-left flex items-center gap-3">
+                    <span class="text-2xl group-hover:scale-110 transition">🧬</span>
+                    <div><div class="text-sm font-bold text-gray-800">Biotech</div><div class="text-xs text-gray-500">Medical nanobots</div></div>
+                </button>
+            </div>
+        </div>
+
+        <div id="feed" class="hidden absolute inset-0 top-16 bottom-24 overflow-y-auto px-4 py-4 space-y-6 no-scrollbar scroll-smooth"></div>
+
+        <div class="absolute bottom-0 w-full bg-white p-4 z-20 border-t border-gray-50">
+            <div class="max-w-3xl mx-auto flex items-center gap-3 bg-gray-100 p-2 rounded-[2rem] shadow-sm focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100 transition-all duration-300">
+                <input id="input-box" type="text" placeholder="Describe invention idea..." class="flex-1 bg-transparent border-none outline-none px-4 text-sm font-medium text-gray-800 placeholder-gray-400 h-10">
+                
+                <button id="action-btn" onclick="handleAction()" class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 bg-white text-blue-600 shadow-sm hover:shadow-md hover:scale-105">
+                    <svg id="icon-send" width="20" height="20" viewBox="0 0 24 24" fill="none" class="block"><path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <svg id="icon-stop" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="hidden text-red-500"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+                </button>
+            </div>
+            <div class="text-center mt-3 text-[10px] text-gray-400 font-medium">AI may generate inaccurate info. Verify important facts.</div>
         </div>
     </div>
 
     <script>
-        const SERVER = "https://lord123hh-aitewnsjdje.hf.space"; // Ensure this matches your HF space
+        const SERVER = "https://lord123hh-aitewnsjdje.hf.space";
         let active = false;
         let turn = 0;
         let history = [];
+        let userName = "User";
+        let loopTimer = null;
 
-        // UI Elements
-        const ui = {
-            welcome: document.getElementById('welcome-screen'),
-            feed: document.getElementById('chat-feed'),
-            input: document.getElementById('user-input'),
-            btn: document.getElementById('send-btn')
-        };
+        // AUTH & UI LOGIC
+        function checkAuth() {
+            const valid = document.getElementById('researcher-name').value.trim().length > 0 && document.getElementById('tos-check').checked;
+            const btn = document.getElementById('start-btn');
+            btn.disabled = !valid;
+            btn.className = valid ? "w-full py-4 rounded-xl bg-blue-600 text-white font-bold text-sm shadow-lg hover:bg-blue-700 transition-all transform hover:scale-[1.02]" : "w-full py-4 rounded-xl bg-gray-200 text-gray-400 font-bold text-sm cursor-not-allowed";
+        }
+        document.getElementById('researcher-name').addEventListener('input', checkAuth);
 
-        function quickStart(topic) {
-            ui.input.value = topic;
-            startLoop();
+        function enterSystem() {
+            userName = document.getElementById('researcher-name').value.trim();
+            document.getElementById('display-name').innerText = userName;
+            document.getElementById('user-badge').innerText = userName.charAt(0).toUpperCase();
+            
+            document.getElementById('auth-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('app-ui').classList.remove('hidden');
+            }, 300);
         }
 
-        ui.btn.onclick = startLoop;
-        ui.input.addEventListener('keypress', (e) => { if (e.key === 'Enter') startLoop(); });
+        function toggleMenu() {
+            const drawer = document.getElementById('menu-drawer');
+            drawer.classList.toggle('-translate-x-full');
+        }
 
-        function startLoop() {
-            const topic = ui.input.value.trim();
-            if (!topic) return;
+        function logout() {
+            if(confirm("Log out and reset?")) location.reload();
+        }
 
-            if (!active) {
-                // First Start Animation
-                active = true;
-                ui.welcome.style.opacity = '0';
-                setTimeout(() => {
-                    ui.welcome.style.display = 'none';
-                    ui.feed.classList.remove('hidden');
-                }, 500);
+        // CHAT LOGIC
+        function quickPrompt(text) {
+            document.getElementById('input-box').value = text;
+            handleAction();
+        }
+
+        function handleAction() {
+            const btn = document.getElementById('action-btn');
+            const input = document.getElementById('input-box');
+
+            if (active) {
+                // STOP LOGIC
+                active = false;
+                clearTimeout(loopTimer);
+                document.getElementById('status-badge').innerText = "PAUSED";
+                document.getElementById('status-badge').className = "px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-[9px] font-bold tracking-widest uppercase";
                 
-                // Add User Message
-                addMessage("USER", topic, "bg-[#F0F4F9] text-gray-800 self-end rounded-2xl rounded-tr-sm");
+                // Switch Icon back to Send
+                document.getElementById('icon-stop').classList.add('hidden');
+                document.getElementById('icon-send').classList.remove('hidden');
+                
+            } else {
+                // START LOGIC
+                const topic = input.value.trim();
+                if (!topic) return;
+
+                active = true;
+                document.getElementById('welcome-hero').style.display = 'none';
+                document.getElementById('feed').classList.remove('hidden');
+                
+                // Add User Bubble
+                addBubble("YOU", topic, "bubble-user", true);
                 history = [`TOPIC: ${topic}`];
-                ui.input.value = '';
-                runFaze();
+                input.value = "";
+
+                // Switch Icon to Stop
+                document.getElementById('icon-send').classList.add('hidden');
+                document.getElementById('icon-stop').classList.remove('hidden');
+                
+                document.getElementById('status-badge').innerText = "ACTIVE";
+                document.getElementById('status-badge').className = "px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[9px] font-bold tracking-widest uppercase animate-pulse";
+
+                runBot();
             }
         }
 
-        async function runFaze() {
+        async function runBot() {
             if (!active) return;
 
             const bots = [
-                { name: "Scientist", style: "bubble-scientist", prompt: "Propose a futuristic invention." },
-                { name: "Safety", style: "bubble-safety", prompt: "Identify a risk in that invention." },
-                { name: "Logic", style: "bubble-logic", prompt: "Give a final verdict." }
+                { name: "SCIENTIST", role: "Visionary", icon: "🧪", style: "bubble-scientist", prompt: "Propose a detailed invention (approx 50 words)." },
+                { name: "SAFETY", role: "Risk Analyst", icon: "🛡️", style: "bubble-safety", prompt: "Explain a specific technical risk in detail (approx 40 words)." },
+                { name: "LOGIC", role: "System Judge", icon: "🧠", style: "bubble-logic", prompt: "Give a final verdict and reasoning (approx 30 words)." }
             ];
 
             const bot = bots[turn];
             const id = `msg-${Date.now()}`;
-            
-            // Show Loading Bubble
-            addMessage(bot.name, "Thinking...", `${bot.style} animate-pulse`, id);
+            addBubble(bot.name, "Processing...", bot.style, false, id, bot.icon, bot.role);
 
             try {
-                // High-Speed GPU Request
                 const res = await fetch(`${SERVER}/chat`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
+                    // UPDATED PROMPT: Forces longer detailed answers
                     body: JSON.stringify({ 
-                        prompt: `ROLE: ${bot.name}. TASK: ${bot.prompt}. CONTEXT: ${history[history.length-1]}. KEEP IT BRIEF.` 
+                        prompt: `ROLE: ${bot.name}. TASK: ${bot.prompt}. CONTEXT: ${history[history.length-1]}. INSTRUCTION: Be detailed, use 2-3 full sentences. USER: ${userName}.` 
                     })
                 });
                 
                 const data = await res.json();
-                const reply = data.reply.replace(/(As \w+:)/gi, "").trim();
+                let reply = data.reply.replace(/(As \w+:)/gi, "").trim();
 
-                // Update Bubble with Real Text
-                const bubble = document.getElementById(id);
-                bubble.innerHTML = marked.parse(reply);
-                bubble.classList.remove('animate-pulse');
+                const el = document.getElementById(id);
+                el.innerHTML = marked.parse(reply);
                 
                 history.push(`${bot.name}: ${reply}`);
                 if (history.length > 5) history.shift();
-                
+
                 turn = (turn + 1) % 3;
-                setTimeout(runFaze, 2000); // Fast 2s delay for GPU speed
+                
+                // 2 SECOND COOLDOWN
+                if (active) loopTimer = setTimeout(runBot, 2000); 
 
             } catch (e) {
                 document.getElementById(id).innerText = "Connection Weak. Retrying...";
-                setTimeout(runFaze, 3000);
+                if (active) loopTimer = setTimeout(runBot, 3000);
             }
         }
 
-        function addMessage(name, text, style, id=null) {
-            const div = document.createElement('div');
-            div.className = `max-w-[85%] p-4 text-sm leading-relaxed shadow-sm fade-in mb-4 ${style}`;
-            if (id) div.id = id;
+        function addBubble(name, text, style, isUser, id=null, icon="", role="") {
+            const wrapper = document.createElement('div');
+            wrapper.className = `w-full flex flex-col ${isUser ? 'items-end' : 'items-start'} fade-enter`;
             
-            // Add icon/name for bots
-            let icon = "";
-            if (name === "Scientist") icon = "🧪";
-            if (name === "Safety") icon = "🛡️";
-            if (name === "Logic") icon = "🧠";
-            if (name === "USER") icon = "";
-
-            const header = name !== "USER" ? `<div class="text-[10px] uppercase font-bold tracking-wider opacity-70 mb-1 flex items-center gap-1"><span>${icon}</span> ${name}</div>` : "";
+            if (!isUser) {
+                wrapper.innerHTML = `
+                    <div class="flex items-center gap-1.5 mb-1 ml-1">
+                        <span class="bg-white shadow-sm border border-gray-100 w-5 h-5 rounded-full flex items-center justify-center text-xs">${icon}</span>
+                        <span class="text-[10px] font-bold text-gray-500 tracking-wider">${name}</span>
+                        <span class="text-[9px] font-medium text-gray-300">• ${role}</span>
+                    </div>
+                    <div id="${id}" class="max-w-[85%] p-4 text-sm leading-relaxed shadow-sm ${style}">${isUser ? text : '<div class="animate-pulse">...</div>'}</div>
+                `;
+            } else {
+                wrapper.innerHTML = `
+                   <div class="flex items-center gap-1.5 mb-1 mr-1">
+                        <span class="text-[10px] font-bold text-gray-400 tracking-wider">YOU</span>
+                    </div>
+                    <div class="max-w-[85%] p-4 text-sm leading-relaxed shadow-sm ${style}">${text}</div> 
+                `;
+            }
             
-            div.innerHTML = `${header}<div class="prose prose-sm">${marked.parse(text)}</div>`;
-            
-            ui.feed.appendChild(div);
-            ui.feed.scrollTo({ top: ui.feed.scrollHeight, behavior: 'smooth' });
+            document.getElementById('feed').appendChild(wrapper);
+            document.getElementById('feed').scrollTo({ top: 10000, behavior: 'smooth' });
         }
     </script>
 </body>
