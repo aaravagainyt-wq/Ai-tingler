@@ -3,309 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FAZE | NEURAL TERMINAL v7.0</title>
+    <title>FAZE | AI Research</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&display=swap');
-        
-        :root {
-            --primary: #00ff41;
-            --danger: #ff003c;
-            --bg: #050505;
-        }
-
-        body { 
-            background: var(--bg); 
-            color: #fff; 
-            font-family: 'JetBrains Mono', monospace; 
-            overflow: hidden; 
-            height: 100vh;
-        }
-
-        /* --- UI COMPONENTS --- */
-        .crt-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 2px, 3px 100%; z-index: 50; pointer-events: none;
-        }
-
-        canvas#matrix { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.15; }
-
-        .faze-panel {
-            background: rgba(10, 10, 10, 0.85);
-            border: 1px solid #222;
-            backdrop-filter: blur(10px);
-        }
-
+        body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #1f1f1f; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-
-        /* --- ANIMATIONS --- */
-        @keyframes scan { from { top: -100%; } to { top: 100%; } }
-        .scanner {
-            position: absolute; width: 100%; height: 5px;
-            background: var(--primary); opacity: 0.2;
-            box-shadow: 0 0 20px var(--primary);
-            animation: scan 4s linear infinite;
-        }
-
-        .glitch-text:hover {
-            animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) both infinite;
-        }
-
-        @keyframes glitch {
-            0% { transform: translate(0) }
-            20% { transform: translate(-2px, 2px) }
-            40% { transform: translate(-2px, -2px) }
-            60% { transform: translate(2px, 2px) }
-            80% { transform: translate(2px, -2px) }
-            100% { transform: translate(0) }
-        }
-
-        .border-scientist { border-left: 4px solid #3b82f6; box-shadow: -10px 0 20px -10px rgba(59, 130, 246, 0.3); }
-        .border-safety { border-left: 4px solid #22c55e; box-shadow: -10px 0 20px -10px rgba(34, 197, 94, 0.3); }
-        .border-logic { border-left: 4px solid #a855f7; box-shadow: -10px 0 20px -10px rgba(168, 85, 247, 0.3); }
+        
+        /* Gradients for the "Gemini" feel */
+        .text-gradient { background: linear-gradient(90deg, #4285F4, #9B72CB, #D96570); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .bg-gradient-icon { background: linear-gradient(135deg, #4285F4, #D96570); }
+        
+        /* Animations */
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; opacity: 0; transform: translateY(10px); }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+        
+        .bubble-scientist { background: #E8F0FE; color: #174EA6; border-radius: 20px 20px 20px 4px; }
+        .bubble-safety { background: #FCE8E6; color: #C5221F; border-radius: 20px 20px 4px 20px; margin-left: auto; }
+        .bubble-logic { background: #F3E8FD; color: #8430CE; border-radius: 20px 20px 20px 20px; }
     </style>
 </head>
-<body class="flex flex-col">
+<body class="h-screen flex flex-col overflow-hidden selection:bg-blue-100">
 
-    <div class="crt-overlay"></div>
-    <canvas id="matrix"></canvas>
+    <header class="flex justify-between items-center p-6 bg-white z-10">
+        <button class="p-2 -ml-2 rounded-full hover:bg-gray-100 transition"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+        <div class="text-xl font-bold tracking-tight">Faze<span class="text-blue-500">AI</span></div>
+        <div class="w-10 h-10 rounded-full bg-gradient-icon flex items-center justify-center text-white font-bold shadow-md">S</div>
+    </header>
 
-    <div id="tos-gateway" class="fixed inset-0 z-[100] bg-black flex items-center justify-center p-6">
-        <div class="faze-panel max-w-lg w-full p-10 border-red-900 border-2 shadow-[0_0_50px_rgba(153,0,0,0.2)]">
-            <h2 class="text-3xl font-black text-red-600 mb-2 italic glitch-text">SAFETY CLEARANCE REQ</h2>
-            <p class="text-[10px] text-zinc-500 mb-8 tracking-[0.2em]">FAZE NEURAL INTERFACE // RESTRICTED ACCESS</p>
-            
-            <div class="bg-black/50 p-4 border border-zinc-800 h-64 overflow-y-auto mb-8 text-[11px] text-zinc-400 leading-relaxed space-y-4 font-sans">
-                <p class="text-white font-bold underline">SECTION 1: NON-HARM PROTOCOL</p>
-                <p>User agrees never to prompt the AI for illegal acts, violence, weapons manufacturing, or harmful biotechnology research.</p>
-                
-                <p class="text-white font-bold underline">SECTION 2: LIABILITY WAIVER</p>
-                <p>Output is generated by a 3B parameter model. Developer (Sarav) is not responsible for hallucinations or incorrect scientific data.</p>
-                
-                <p class="text-white font-bold underline">SECTION 3: SYSTEM LIMITS</p>
-                <p>Connections use a free CPU tier. Latency is expected. Neural drops are handled via auto-retry protocols.</p>
+    <div id="main-container" class="flex-1 flex flex-col relative overflow-hidden">
+        
+        <div id="welcome-screen" class="flex-1 flex flex-col p-6 transition-opacity duration-500">
+            <h1 class="text-5xl font-bold text-[#c4c7c5] mb-2 tracking-tight">Hi <span class="text-gradient">Sarav</span></h1>
+            <h2 class="text-5xl font-bold text-[#444746] mb-12 tracking-tight">What shall we research?</h2>
+
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="quickStart('Future of Biotechnology')" class="text-left p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all border border-transparent hover:border-gray-200">
+                    <span class="block text-xl mb-2">🧬</span>
+                    <span class="font-medium text-sm text-gray-700">Explore Biotech</span>
+                </button>
+                <button onclick="quickStart('Risks of Artificial Intelligence')" class="text-left p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all border border-transparent hover:border-gray-200">
+                    <span class="block text-xl mb-2">🛡️</span>
+                    <span class="font-medium text-sm text-gray-700">Analyze AI Safety</span>
+                </button>
+                <button onclick="quickStart('Quantum Computing')" class="text-left p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all border border-transparent hover:border-gray-200">
+                    <span class="block text-xl mb-2">⚛️</span>
+                    <span class="font-medium text-sm text-gray-700">Quantum Logic</span>
+                </button>
+                <button onclick="quickStart('Sustainable Energy')" class="text-left p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all border border-transparent hover:border-gray-200">
+                    <span class="block text-xl mb-2">🌱</span>
+                    <span class="font-medium text-sm text-gray-700">Green Energy</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="chat-feed" class="hidden absolute inset-0 flex flex-col p-4 overflow-y-auto no-scrollbar space-y-6 pb-32">
             </div>
 
-            <button onclick="unlockSystem()" class="w-full bg-red-600 py-4 font-black text-xs hover:bg-white hover:text-black transition-all tracking-[0.4em]">I ACCEPT TERMS</button>
-        </div>
+        <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-white via-white to-transparent pointer-events-none z-10"></div>
     </div>
 
-    <div id="terminal-ui" class="hidden h-full flex flex-col p-4 gap-4">
-        
-        <div class="faze-panel p-4 flex justify-between items-center text-[10px] border-zinc-800">
-            <div class="flex gap-6 items-center">
-                <span class="font-black text-blue-500">FAZE CORE v7.0</span>
-                <div class="flex flex-col">
-                    <span class="text-zinc-600">RAM USAGE</span>
-                    <div class="w-24 h-1 bg-zinc-900 mt-1"><div id="ram-bar" class="h-full bg-blue-500 w-[12%] transition-all duration-1000"></div></div>
-                </div>
-                <div class="flex flex-col">
-                    <span class="text-zinc-600">CPU LOAD</span>
-                    <div class="w-24 h-1 bg-zinc-900 mt-1"><div id="cpu-bar" class="h-full bg-purple-500 w-[5%] transition-all duration-1000"></div></div>
-                </div>
-            </div>
-            <div class="flex gap-4">
-                <span id="ping-display" class="text-zinc-500">PING: --ms</span>
-                <span id="conn-status" class="text-red-500 animate-pulse">OFFLINE</span>
-            </div>
+    <div class="p-4 bg-white z-20">
+        <div class="max-w-4xl mx-auto relative flex items-center bg-[#F0F4F9] rounded-full px-2 py-2 shadow-sm focus-within:bg-white focus-within:shadow-md transition-all duration-300 border border-transparent focus-within:border-gray-200">
+            <button class="p-3 text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded-full transition"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
+            
+            <input id="user-input" type="text" placeholder="Ask Faze..." class="flex-1 bg-transparent border-none outline-none text-gray-800 text-lg px-2 placeholder-gray-500 font-medium">
+            
+            <button id="send-btn" class="p-3 bg-white text-blue-600 rounded-full shadow-sm hover:shadow-md hover:bg-blue-50 transition transform hover:scale-105 group">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="group-hover:animate-spin">
+                    <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" fill="url(#sparkle)" stroke="none"/>
+                    <defs><linearGradient id="sparkle" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse"><stop stop-color="#4285F4"/><stop offset="1" stop-color="#D96570"/></linearGradient></defs>
+                </svg>
+            </button>
         </div>
-
-        <div class="flex-1 flex gap-4 overflow-hidden">
-            <div class="w-16 faze-panel flex flex-col items-center py-6 gap-8 border-zinc-800">
-                <button onclick="downloadTranscript()" title="Download Debate" class="hover:text-primary transition-colors">💾</button>
-                <button onclick="window.location.reload()" title="Hard Reset" class="hover:text-danger transition-colors">🔄</button>
-                <button onclick="toggleAudio()" id="audio-btn" title="Toggle Sound" class="text-zinc-600">🔊</button>
-            </div>
-
-            <div class="flex-1 flex flex-col faze-panel border-zinc-800 relative">
-                <div class="scanner"></div>
-                <div id="feed" class="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
-                    <div class="text-[10px] text-zinc-700 text-center uppercase tracking-widest my-10 border-b border-zinc-900 pb-2">End-to-End Encryption Established</div>
-                </div>
-
-                <div class="p-4 bg-black/50 border-t border-zinc-800">
-                    <div class="flex gap-3">
-                        <input id="main-input" type="text" placeholder="INITIALIZE TOPIC..." 
-                               class="flex-1 bg-transparent border-b border-zinc-800 py-3 text-sm focus:border-primary focus:outline-none transition-all placeholder:text-zinc-700">
-                        <button id="action-btn" class="bg-primary/10 border border-primary/50 text-primary px-10 font-black text-xs hover:bg-primary hover:text-black transition-all">LOOP</button>
-                    </div>
-                </div>
-            </div>
+        <div class="text-center mt-2">
+            <p class="text-[10px] text-gray-400 font-medium">Faze may display inaccurate info, including about people, so double-check its responses.</p>
         </div>
     </div>
 
     <script>
-        // --- CORE CONFIGURATION ---
-        const SERVER_URL = "https://lord123hh-aitewnsjdje.hf.space";
-        let loopActive = false;
-        let turnIndex = 0;
-        let contextArray = [];
-        let audioEnabled = false;
+        const SERVER = "https://lord123hh-aitewnsjdje.hf.space"; // Ensure this matches your HF space
+        let active = false;
+        let turn = 0;
+        let history = [];
 
-        // --- AUDIO ENGINE ---
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playPing(freq = 440, type = 'sine', vol = 0.1) {
-            if (!audioEnabled) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.5);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.5);
-        }
-
-        // --- MATRIX ENGINE ---
-        const canvas = document.getElementById('matrix');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        const columns = Math.floor(canvas.width / 20);
-        const drops = Array(columns).fill(1);
-        function drawMatrix() {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#0F0"; ctx.font = "15px monospace";
-            drops.forEach((y, i) => {
-                const text = String.fromCharCode(Math.random() * 128);
-                ctx.fillText(text, i * 20, y * 20);
-                if (y * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
-                drops[i]++;
-            });
-        }
-        setInterval(drawMatrix, 50);
-
-        // --- SYSTEM LOGIC ---
-        function unlockSystem() {
-            document.getElementById('tos-gateway').style.display = 'none';
-            document.getElementById('terminal-ui').classList.remove('hidden');
-            checkConnection();
-            setInterval(updateDiagnostics, 2000);
-        }
-
-        async function checkConnection() {
-            const start = Date.now();
-            try {
-                const res = await fetch(SERVER_URL);
-                if (res.ok) {
-                    const ping = Date.now() - start;
-                    document.getElementById('ping-display').innerText = `PING: ${ping}ms`;
-                    document.getElementById('conn-status').innerText = "ONLINE";
-                    document.getElementById('conn-status').className = "text-primary font-bold";
-                    return true;
-                }
-            } catch (e) {
-                document.getElementById('conn-status').innerText = "OFFLINE";
-                document.getElementById('conn-status').className = "text-danger animate-pulse";
-                return false;
-            }
-        }
-
-        function updateDiagnostics() {
-            const ram = Math.floor(Math.random() * 15) + 5; // Simulating base load
-            const cpu = loopActive ? Math.floor(Math.random() * 40) + 30 : Math.floor(Math.random() * 5);
-            document.getElementById('ram-bar').style.width = ram + "%";
-            document.getElementById('cpu-bar').style.width = cpu + "%";
-        }
-
-        // --- THE AI RESEARCH LOOP ---
-        document.getElementById('action-btn').onclick = () => {
-            if (loopActive) {
-                loopActive = false;
-                document.getElementById('action-btn').innerText = "LOOP";
-            } else {
-                const input = document.getElementById('main-input').value;
-                if (!input) return;
-                loopActive = true;
-                document.getElementById('action-btn').innerText = "STOP";
-                contextArray = [`USER TOPIC: ${input}`];
-                addBubble("SYSTEM", `NEURAL SYNC COMMENCED: RESEARCHING ${input.toUpperCase()}`, "text-zinc-500", "border-zinc-800");
-                runTurn();
-            }
+        // UI Elements
+        const ui = {
+            welcome: document.getElementById('welcome-screen'),
+            feed: document.getElementById('chat-feed'),
+            input: document.getElementById('user-input'),
+            btn: document.getElementById('send-btn')
         };
 
-        async function runTurn() {
-            if (!loopActive) return;
+        function quickStart(topic) {
+            ui.input.value = topic;
+            startLoop();
+        }
+
+        ui.btn.onclick = startLoop;
+        ui.input.addEventListener('keypress', (e) => { if (e.key === 'Enter') startLoop(); });
+
+        function startLoop() {
+            const topic = ui.input.value.trim();
+            if (!topic) return;
+
+            if (!active) {
+                // First Start Animation
+                active = true;
+                ui.welcome.style.opacity = '0';
+                setTimeout(() => {
+                    ui.welcome.style.display = 'none';
+                    ui.feed.classList.remove('hidden');
+                }, 500);
+                
+                // Add User Message
+                addMessage("USER", topic, "bg-[#F0F4F9] text-gray-800 self-end rounded-2xl rounded-tr-sm");
+                history = [`TOPIC: ${topic}`];
+                ui.input.value = '';
+                runFaze();
+            }
+        }
+
+        async function runFaze() {
+            if (!active) return;
 
             const bots = [
-                { name: "SCIENTIST", col: "text-blue-400", b: "border-scientist", instruction: "Propose a groundbreaking futuristic invention based on the topic. Be peaceful. No violence." },
-                { name: "SAFETY", col: "text-green-400", b: "border-safety", instruction: "Analyze the Scientist's idea for non-violent technical risks. Do not harm humans." },
-                { name: "LOGIC", col: "text-purple-400", b: "border-logic", instruction: "Verify if this tech is possible using current physics. Give a final verdict." }
+                { name: "Scientist", style: "bubble-scientist", prompt: "Propose a futuristic invention." },
+                { name: "Safety", style: "bubble-safety", prompt: "Identify a risk in that invention." },
+                { name: "Logic", style: "bubble-logic", prompt: "Give a final verdict." }
             ];
 
-            const bot = bots[turnIndex];
-            const msgId = `msg-${Date.now()}`;
-            addBubble(bot.name, "UPLINKING DATA...", bot.col, bot.b, msgId);
-            playPing(600, 'square', 0.05);
+            const bot = bots[turn];
+            const id = `msg-${Date.now()}`;
+            
+            // Show Loading Bubble
+            addMessage(bot.name, "Thinking...", `${bot.style} animate-pulse`, id);
 
-            let success = false;
-            let retries = 0;
+            try {
+                // High-Speed GPU Request
+                const res = await fetch(`${SERVER}/chat`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        prompt: `ROLE: ${bot.name}. TASK: ${bot.prompt}. CONTEXT: ${history[history.length-1]}. KEEP IT BRIEF.` 
+                    })
+                });
+                
+                const data = await res.json();
+                const reply = data.reply.replace(/(As \w+:)/gi, "").trim();
 
-            // --- AUTO-RETRY LOGIC ---
-            while (!success && retries < 3) {
-                try {
-                    const response = await fetch(`${SERVER_URL}/chat`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ 
-                            prompt: `MASTER PROTOCOL: No violence. No harm. No illegal acts.\nPREVIOUS DEBATE: ${contextArray.slice(-1)}\nACTION: You are ${bot.name}. ${bot.instruction}` 
-                        })
-                    });
+                // Update Bubble with Real Text
+                const bubble = document.getElementById(id);
+                bubble.innerHTML = marked.parse(reply);
+                bubble.classList.remove('animate-pulse');
+                
+                history.push(`${bot.name}: ${reply}`);
+                if (history.length > 5) history.shift();
+                
+                turn = (turn + 1) % 3;
+                setTimeout(runFaze, 2000); // Fast 2s delay for GPU speed
 
-                    if (!response.ok) throw new Error("Server error");
-                    
-                    const data = await response.json();
-                    let reply = data.reply.trim().replace(/As (SCIENTIST|SAFETY|LOGIC):/gi, "");
-                    
-                    document.getElementById(msgId).innerHTML = marked.parse(reply);
-                    contextArray.push(`${bot.name}: ${reply}`);
-                    playPing(400, 'sine', 0.1);
-                    success = true;
-                } catch (err) {
-                    retries++;
-                    document.getElementById(msgId).innerText = `RETRYING LINK (ATTEMPT ${retries}/3)...`;
-                    await new Promise(r => setTimeout(r, 2000));
-                }
-            }
-
-            if (!success) {
-                document.getElementById(msgId).innerHTML = "<span class='text-danger'>NEURAL LINK DROPPED: SERVER TIMEOUT.</span>";
-                loopActive = false;
-            } else {
-                if (contextArray.length > 6) contextArray.shift();
-                turnIndex = (turnIndex + 1) % 3;
-                // Cooldown delay to prevent OOM
-                if (loopActive) setTimeout(runTurn, 4000); 
+            } catch (e) {
+                document.getElementById(id).innerText = "Connection Weak. Retrying...";
+                setTimeout(runFaze, 3000);
             }
         }
 
-        function addBubble(name, text, color, border, id) {
+        function addMessage(name, text, style, id=null) {
             const div = document.createElement('div');
-            div.className = `p-5 bg-zinc-900/50 border-l-4 ${border} animate-pulse`;
-            div.innerHTML = `
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-[9px] font-black ${color} tracking-[0.3em]">${name}</span>
-                    <span class="text-[8px] text-zinc-700">${new Date().toLocaleTimeString()}</span>
-                </div>
-                <div id="${id}" class="text-sm text-zinc-300 leading-relaxed font-sans">${marked.parse(text)}</div>
-            `;
-            document.getElementById('feed').appendChild(div);
-            document.getElementById('feed').scrollTo({top: 99999, behavior: 'smooth'});
-            setTimeout(() => div.classList.remove('animate-pulse'), 1000);
-        }
+            div.className = `max-w-[85%] p-4 text-sm leading-relaxed shadow-sm fade-in mb-4 ${style}`;
+            if (id) div.id = id;
+            
+            // Add icon/name for bots
+            let icon = "";
+            if (name === "Scientist") icon = "🧪";
+            if (name === "Safety") icon = "🛡️";
+            if (name === "Logic") icon = "🧠";
+            if (name === "USER") icon = "";
 
-        function downloadTranscript() {
-            const blob = new Blob([contextArray.join("\n\n")], {type: 'text/plain'});
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'faze-research-log.txt'; a.click();
-        }
-
-        function toggleAudio() {
-            audioEnabled = !audioEnabled;
-            document.getElementById('audio-btn').className = audioEnabled ? "text-primary" : "text-zinc-600";
-            if(audioEnabled && audioCtx.state === 'suspended') audioCtx.resume();
+            const header = name !== "USER" ? `<div class="text-[10px] uppercase font-bold tracking-wider opacity-70 mb-1 flex items-center gap-1"><span>${icon}</span> ${name}</div>` : "";
+            
+            div.innerHTML = `${header}<div class="prose prose-sm">${marked.parse(text)}</div>`;
+            
+            ui.feed.appendChild(div);
+            ui.feed.scrollTo({ top: ui.feed.scrollHeight, behavior: 'smooth' });
         }
     </script>
 </body>
