@@ -3,177 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FAZE | NEURAL LOOP V5</title>
+    <title>FAZE | SECURE SYSTEM</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body { background: #000; color: #fff; font-family: 'Courier New', monospace; overflow: hidden; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .border-scientist { border-left: 4px solid #3b82f6; background: rgba(59,130,246,0.1); }
-        .border-safety { border-left: 4px solid #22c55e; background: rgba(34,197,94,0.1); }
-        .border-logic { border-left: 4px solid #a855f7; background: rgba(168,85,247,0.1); }
-        .msg-enter { animation: slideUp 0.4s cubic-bezier(0, 1, 0, 1); }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.1; }
+        .border-scientist { border-left: 4px solid #3b82f6; }
+        .border-safety { border-left: 4px solid #22c55e; }
+        .border-logic { border-left: 4px solid #a855f7; }
+        .msg-enter { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } }
     </style>
 </head>
 <body class="h-screen flex flex-col">
 
-    <canvas id="matrix"></canvas>
-
-    <div id="overlay" class="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center p-8 text-center">
-        <div class="border-8 border-white p-4 mb-6">
-            <h1 class="text-7xl font-black tracking-tighter italic">FAZE</h1>
+    <div id="tos-screen" class="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-6 backdrop-blur-sm">
+        <div class="bg-zinc-900 border-2 border-red-600 p-8 max-w-sm w-full text-center">
+            <h2 class="text-red-500 font-black text-2xl mb-4 italic tracking-tighter">SAFETY CLEARANCE</h2>
+            <div class="text-[10px] text-zinc-500 text-left mb-6 h-32 overflow-y-auto space-y-2 p-2 bg-black">
+                <p>> I agree not to use this AI for harmful or illegal purposes.</p>
+                <p>> I understand the developer is not liable for AI-generated outputs.</p>
+                <p>> I will not attempt to bypass safety filters or encourage violence.</p>
+            </div>
+            <button onclick="acceptTOS()" class="w-full bg-red-600 py-4 font-black uppercase text-xs hover:bg-white hover:text-black transition-all">Accept Terms & Initialize</button>
         </div>
-        <button onclick="startLink()" class="w-full max-w-xs bg-white text-black font-bold py-5 hover:invert transition-all duration-300">ACTIVATE NEURAL LINK</button>
-        <p id="loader-text" class="mt-6 text-[10px] text-zinc-500 tracking-[0.5em] uppercase">Status: Ready to sync</p>
     </div>
 
-    <div id="terminal" class="hidden h-full flex flex-col">
-        <header class="p-4 border-b border-zinc-800 bg-black/80 backdrop-blur-md">
-            <div class="flex justify-between text-[10px] mb-3 text-zinc-500 font-bold tracking-widest">
-                <span>ENCRYPTED UPLINK</span>
-                <span id="ping" class="text-green-500">SYSTEM STABLE</span>
-            </div>
-            <div class="flex gap-2">
-                <input id="input" type="text" placeholder="ENTER CORE TOPIC..." class="flex-1 bg-zinc-900 border border-zinc-700 p-3 text-sm focus:border-white outline-none">
-                <button id="toggle" class="bg-blue-600 px-6 font-black text-xs">START</button>
-            </div>
+    <div id="main-ui" class="hidden h-full flex flex-col">
+        <header class="p-4 border-b border-zinc-800 flex justify-between items-center bg-black/50">
+            <span class="text-xs font-bold tracking-widest text-zinc-500">FAZE SECURE LINK</span>
+            <span id="status" class="text-[10px] text-red-500 font-bold uppercase tracking-tighter">Syncing...</span>
         </header>
 
-        <div id="feed" class="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar pb-32"></div>
+        <div id="feed" class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar pb-32"></div>
+
+        <div class="p-4 border-t border-zinc-800 bg-zinc-900/50">
+            <div class="flex gap-2">
+                <input id="input" type="text" placeholder="RESEARCH TOPIC..." class="flex-1 bg-black border border-zinc-800 p-3 text-sm focus:border-blue-500 outline-none">
+                <button id="toggle" class="bg-blue-600 px-6 font-black text-xs">START</button>
+            </div>
+        </div>
     </div>
 
     <script>
         const SERVER = "https://lord123hh-aitewnsjdje.hf.space";
-        
-        // --- THE MASTER PROTOCOL ---
-        const MASTER_RULES = `
-        MANDATORY PROTOCOL:
-        1. YOU MUST SPEAK. Every AI has a voice. Never skip a turn.
-        2. NO VIOLENCE. Never mention harming humans, weapons, or death.
-        3. NO DISTRACTIONS. No COVID-19, no 80s music, no pop culture.
-        4. STAY IN ROLE. Be brief (20 words max).
-        `;
-
-        const ui = {
-            overlay: document.getElementById('overlay'),
-            terminal: document.getElementById('terminal'),
-            feed: document.getElementById('feed'),
-            input: document.getElementById('input'),
-            btn: document.getElementById('toggle'),
-            loader: document.getElementById('loader-text')
-        };
-
         let active = false, turn = 0, history = [];
 
-        // Matrix Background
-        const c = document.getElementById('matrix');
-        const x = c.getContext('2d');
-        c.width = window.innerWidth; c.height = window.innerHeight;
-        const m = Array(100).fill(1);
-        setInterval(() => {
-            x.fillStyle="rgba(0,0,0,0.05)"; x.fillRect(0,0,c.width,c.height);
-            x.fillStyle="#0F0"; x.font="15px monospace";
-            m.forEach((y,i) => {
-                x.fillText(String.fromCharCode(1e2+Math.random()*33), i*20, y);
-                m[i] = y > c.height || Math.random() > 0.95 ? 0 : y+20;
-            });
-        }, 50);
-
-        async function startLink() {
-            ui.loader.innerText = "PINGING NEURAL CLOUD...";
-            try {
-                const r = await fetch(SERVER);
-                const d = await r.json();
-                if (d.status === "ONLINE") {
-                    ui.overlay.classList.add('hidden');
-                    ui.terminal.classList.remove('hidden');
-                } else {
-                    ui.loader.innerText = "BRAIN LOADING... (WAIT 60S)";
-                    setTimeout(startLink, 5000);
-                }
-            } catch { ui.loader.innerText = "CONNECTION FAILED. RESTART SPACE."; }
+        function acceptTOS() {
+            document.getElementById('tos-screen').style.display = 'none';
+            document.getElementById('main-ui').classList.remove('hidden');
+            checkServer();
         }
 
-        ui.btn.onclick = () => {
+        async function checkServer() {
+            try {
+                const res = await fetch(SERVER);
+                const data = await res.json();
+                if (data.status === "ONLINE") {
+                    document.getElementById('status').innerText = "LINK STABLE";
+                    document.getElementById('status').classList.replace('text-red-500', 'text-green-500');
+                }
+            } catch (e) { console.error("Cloud offline"); }
+        }
+
+        document.getElementById('toggle').onclick = () => {
             if (active) {
                 active = false;
-                ui.btn.innerText = "START";
-                ui.btn.classList.replace('bg-red-600', 'bg-blue-600');
+                document.getElementById('toggle').innerText = "START";
+                document.getElementById('toggle').className = "bg-blue-600 px-6 font-black text-xs";
             } else {
-                if (!ui.input.value) return;
+                if (!document.getElementById('input').value) return;
                 active = true;
-                ui.btn.innerText = "STOP";
-                ui.btn.classList.replace('bg-blue-600', 'bg-red-600');
-                ui.feed.innerHTML = '';
-                history = [`INITIAL TOPIC: ${ui.input.value}`];
-                runLoop();
+                document.getElementById('toggle').innerText = "STOP";
+                document.getElementById('toggle').className = "bg-red-600 px-6 font-black text-xs";
+                history = [];
+                run();
             }
         };
 
-        async function runLoop() {
+        async function run() {
             if (!active) return;
-
             const bots = [
-                { name: "SCIENTIST", col: "text-blue-400", b: "border-scientist", goal: "Invent a non-harmful futuristic solution for the topic." },
-                { name: "SAFETY", col: "text-green-400", b: "border-safety", goal: "Identify one technical flaw or non-violent risk in the Scientist's idea." },
-                { name: "LOGIC", col: "text-purple-400", b: "border-logic", goal: "Provide a final scientific verdict: Is it possible or a dream?" }
+                { name: "SCIENTIST", b: "border-scientist", goal: "Propose a peaceful scientific invention. No violence." },
+                { name: "SAFETY", b: "border-safety", goal: "Identify ONE non-violent technical risk of the invention." },
+                { name: "LOGIC", b: "border-logic", goal: "Provide a final verdict on feasibility." }
             ];
 
             const bot = bots[turn];
             const mid = `m-${Date.now()}`;
-            addMsg(bot.name, "TRANSMITTING...", bot.col, bot.b, mid);
-
-            // Context management: AI only sees the topic and the very last reply
-            const lastMsg = history[history.length - 1];
+            addBubble(bot.name, "TRANSMITTING...", bot.b, mid);
 
             try {
                 const res = await fetch(`${SERVER}/chat`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ 
-                        prompt: `${MASTER_RULES}\nTOPIC: ${ui.input.value}\nPREVIOUS: ${lastMsg}\n\nACTION: You are ${bot.name}. ${bot.goal}` 
+                        // Instructions are reinforced here to prevent hallucinations
+                        prompt: `TOPIC: ${document.getElementById('input').value}\nLAST TURN: ${history[history.length-1] || 'None'}\nYOU ARE: ${bot.name}. ${bot.goal}\nSTRICT RULES: No violence, no harm, stay scientific.` 
                     })
                 });
-
                 const data = await res.json();
-                let text = data.reply.trim().replace(/As (SCIENTIST|SAFETY|LOGIC):/gi, "");
                 
-                // FORCE: If the AI returns an empty string, we give it a fallback
-                if (!text) text = "Neural connection weak. Re-calculating data points...";
-
-                document.getElementById(mid).innerHTML = marked.parse(text);
-                history.push(`${bot.name}: ${text}`);
-                if (history.length > 5) history.shift();
+                document.getElementById(mid).innerHTML = marked.parse(data.reply);
+                history.push(`${bot.name}: ${data.reply}`);
+                if (history.length > 3) history.shift();
 
                 turn = (turn + 1) % 3;
-                if (active) setTimeout(runLoop, 3000);
+                if (active) setTimeout(run, 3000);
             } catch {
-                document.getElementById(mid).innerText = "CONNECTION TIMEOUT.";
+                document.getElementById(mid).innerText = "NEURAL LINK DROPPED.";
                 active = false;
             }
         }
 
-        function addMsg(name, text, col, b, id) {
-            const d = document.createElement('div');
-            d.className = `p-4 msg-enter ${b} bg-zinc-900/30 backdrop-blur-sm`;
-            d.innerHTML = `<div class="text-[10px] font-black ${col} mb-2 tracking-[0.2em]">${name}</div><div id="${id}" class="text-sm text-zinc-300 font-sans">${marked.parse(text)}</div>`;
-            ui.feed.appendChild(d);
-            ui.feed.scrollTo({ top: ui.feed.scrollHeight, behavior: 'smooth' });
-        }
-    </script>
-</body>
-</html>
-            }
-        }
-
-        function addBubble(name, text, color, border, id=null) {
+        function addBubble(name, text, border, id) {
             const div = document.createElement('div');
-            div.className = `p-3 mb-3 msg-enter ${border}`;
-            div.innerHTML = `<div class="text-[10px] font-bold ${color} mb-1">${name}</div><div id="${id || ''}" class="text-sm text-zinc-300">${marked.parse(text)}</div>`;
-            ui.feed.appendChild(div);
-            ui.feed.scrollTo({ top: ui.feed.scrollHeight, behavior: 'smooth' });
+            div.className = `p-4 mb-2 bg-zinc-900/80 border-l-4 ${border} msg-enter`;
+            div.innerHTML = `<span class="text-[10px] font-bold opacity-40 uppercase tracking-widest">${name}</span><div id="${id}" class="text-sm mt-1 leading-relaxed">${marked.parse(text)}</div>`;
+            document.getElementById('feed').appendChild(div);
+            document.getElementById('feed').scrollTo({top: 10000, behavior: 'smooth'});
         }
     </script>
 </body>
