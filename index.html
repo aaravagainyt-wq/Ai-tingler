@@ -3,200 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FAZE | CLOUD LINK</title>
+    <title>FAZE | GOD MODE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        body { background-color: #000; color: #fff; font-family: 'Courier New', Courier, monospace; overflow: hidden; }
-        #matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.15; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .msg-enter { animation: slideUp 0.3s ease-out forwards; opacity: 0; transform: translateY(10px); }
+        body { background: #000; color: #fff; font-family: 'Courier New', monospace; overflow: hidden; }
+        .border-scientist { border-left: 3px solid #3b82f6; background: rgba(59,130,246,0.05); }
+        .border-safety { border-left: 3px solid #22c55e; background: rgba(34,197,94,0.05); }
+        .border-logic { border-left: 3px solid #a855f7; background: rgba(168,85,247,0.05); }
+        .msg-enter { animation: slideUp 0.3s forwards; opacity: 0; }
         @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
-        /* Neon Borders */
-        .border-scientist { border-left: 3px solid #3b82f6; background: rgba(59, 130, 246, 0.05); }
-        .border-safety { border-left: 3px solid #22c55e; background: rgba(34, 197, 94, 0.05); }
-        .border-logic { border-left: 3px solid #a855f7; background: rgba(168, 85, 247, 0.05); }
     </style>
 </head>
 <body class="h-screen flex flex-col">
 
-    <canvas id="matrix-bg"></canvas>
-
     <div id="faze-overlay" class="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center p-6 text-center">
-        <h1 class="text-6xl font-black tracking-tighter text-white mb-2 border-4 border-white p-2">FAZE</h1>
-        <p class="text-zinc-500 text-xs tracking-[0.3em] mb-8">CLOUD UPLINK // V4.0</p>
-        
-        <div id="entry-controls" class="space-y-4 w-full max-w-xs">
-            <button onclick="connectToServer()" class="w-full bg-white text-black font-bold py-4 rounded-sm hover:scale-105 transition-transform">
-                CONNECT TO SERVER
-            </button>
-            <p id="debug-text" class="text-[10px] text-zinc-600">Verifying link...</p>
-        </div>
-
-        <div id="loading-interface" class="hidden w-full max-w-xs space-y-3">
-            <div class="flex justify-between text-[10px] text-zinc-400 font-bold">
-                <span>ESTABLISHING UPLINK...</span>
-                <span id="load-status">CONNECTING</span>
-            </div>
-            <div class="w-full h-2 bg-zinc-900 border border-zinc-800 rounded-full overflow-hidden">
-                <div id="progress-bar" class="h-full bg-white w-full animate-pulse"></div>
-            </div>
-        </div>
+        <h1 class="text-6xl font-black border-4 p-2 mb-8">FAZE</h1>
+        <button onclick="connect()" class="w-full max-w-xs bg-white text-black font-bold py-4 rounded-sm">ENTER SYSTEM</button>
+        <p id="debug" class="text-[10px] text-zinc-600 mt-4 uppercase">Neural link: Ready</p>
     </div>
 
-    <div id="app-container" class="hidden h-full flex flex-col">
-        <div class="bg-black/90 backdrop-blur border-b border-zinc-800 p-3 flex flex-col gap-3 z-10">
-            <div class="flex justify-between items-center">
-                <span class="font-bold tracking-tight text-white">FAZE LOOP</span>
-                <span id="cloud-status" class="text-[10px] text-yellow-500 border border-yellow-900 px-2 py-1 rounded">PINGING...</span>
-            </div>
+    <div id="app" class="hidden h-full flex flex-col">
+        <div class="p-3 border-b border-zinc-800 bg-black flex flex-col gap-2">
+            <span class="font-bold text-xs tracking-widest">FAZE LOOP ACTIVE</span>
             <div class="flex gap-2">
-                <input id="topic-input" type="text" placeholder="Enter Topic..." class="flex-1 bg-zinc-900 border border-zinc-700 text-white px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
-                <button id="action-btn" class="bg-blue-600 text-white px-4 py-2 text-sm font-bold hover:bg-blue-500">START</button>
+                <input id="topic" type="text" placeholder="Topic..." class="flex-1 bg-zinc-900 border border-zinc-700 px-3 py-2 text-sm focus:border-white outline-none">
+                <button id="action" class="bg-blue-600 px-4 font-bold text-xs">START</button>
             </div>
         </div>
-
-        <div id="chat-feed" class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar pb-24">
-            <div class="text-center text-xs text-zinc-600 my-8">-- SECURE SERVER LINKED --</div>
-        </div>
+        <div id="feed" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
     </div>
 
     <script>
-        // --- 1. CONFIGURATION (CHECK THIS EXACTLY) ---
-        // Must be exactly the link that showed "FAZE ONLINE"
-        const SERVER_URL = "https://lord123hh-aitewnsjdje.hf.space"; 
+        // 1. UPDATE THIS LINK
+        const SERVER = "https://lord123hh-aitewnsjdje.hf.space";
 
-        // --- MATRIX BACKGROUND ---
-        const canvas = document.getElementById('matrix-bg');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        const chars = "01FAZE";
-        const drops = Array(Math.floor(canvas.width / 14)).fill(1);
-        setInterval(() => {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#0F0";
-            ctx.font = "14px monospace";
-            drops.forEach((y, i) => {
-                ctx.fillText(chars[Math.floor(Math.random() * chars.length)], i * 14, y * 14);
-                if (y * 14 > canvas.height && Math.random() > 0.98) drops[i] = 0;
-                drops[i]++;
-            });
-        }, 50);
-
-        // --- UI & STATE ---
         const ui = {
             overlay: document.getElementById('faze-overlay'),
-            entry: document.getElementById('entry-controls'),
-            loader: document.getElementById('loading-interface'),
-            app: document.getElementById('app-container'),
-            feed: document.getElementById('chat-feed'),
-            input: document.getElementById('topic-input'),
-            btn: document.getElementById('action-btn'),
-            cloudStatus: document.getElementById('cloud-status'),
-            debug: document.getElementById('debug-text')
+            app: document.getElementById('app'),
+            feed: document.getElementById('feed'),
+            topic: document.getElementById('topic'),
+            btn: document.getElementById('action'),
+            debug: document.getElementById('debug')
         };
-        
+
         let isLooping = false, turn = 0, context = [];
 
-        // --- 2. CONNECTION LOGIC (DIAGNOSTIC) ---
-        async function connectToServer() {
-            ui.entry.classList.add('hidden');
-            ui.loader.classList.remove('hidden');
-
+        async function connect() {
             try {
-                // Test ping to the server
-                const res = await fetch(SERVER_URL, { mode: 'cors' });
+                ui.debug.innerText = "Pinging server...";
+                const res = await fetch(SERVER);
                 if (res.ok) {
                     ui.overlay.style.display = 'none';
                     ui.app.classList.remove('hidden');
-                    ui.cloudStatus.innerText = "CLOUD ACTIVE";
-                    ui.cloudStatus.className = "text-[10px] text-green-500 border border-green-900 px-2 py-1 rounded";
-                } else {
-                    throw new Error("Server returned error: " + res.status);
                 }
             } catch (e) {
-                console.error("Connection Error:", e);
-                ui.loader.classList.add('hidden');
-                ui.entry.classList.remove('hidden');
-                ui.debug.innerText = "ERROR: " + e.message;
-                ui.debug.classList.replace("text-zinc-600", "text-red-500");
-                alert("NETWORK ERROR: Cannot reach " + SERVER_URL + "\nCheck if Space is set to PUBLIC.");
+                ui.debug.innerText = "Error: " + e.message;
+                alert("Connection Failed. Is the Hugging Face Space running?");
             }
         }
 
-        // --- 3. LOOP LOGIC ---
         ui.btn.onclick = () => {
             if (isLooping) {
                 isLooping = false;
                 ui.btn.innerText = "START";
                 ui.btn.classList.replace('bg-red-600', 'bg-blue-600');
             } else {
-                if (!ui.input.value) return;
+                if (!ui.topic.value) return;
                 isLooping = true;
                 ui.btn.innerText = "STOP";
                 ui.btn.classList.replace('bg-blue-600', 'bg-red-600');
-                
-                addBubble("USER", ui.input.value, "text-white", "bg-zinc-800");
-                context = [{ role: "user", content: `Topic: ${ui.input.value}.` }];
-                turn = 0;
-                processTurn();
+                addBubble("USER", ui.topic.value, "text-white", "bg-zinc-800");
+                context = [{ role: "user", content: `Topic: ${ui.topic.value}` }];
+                process();
             }
         };
 
-        async function processTurn() {
+        async function process() {
             if (!isLooping) return;
-
-            const BOTS = [
-                { name: "SCIENTIST", color: "text-blue-400", border: "border-scientist", prompt: "Propose a bold idea (max 20 words)." },
-                { name: "SAFETY", color: "text-green-400", border: "border-safety", prompt: "Check for danger (max 20 words)." },
-                { name: "LOGIC", color: "text-purple-400", border: "border-logic", prompt: "Check possibility (max 20 words)." }
+            const bots = [
+                { name: "SCIENTIST", color: "text-blue-400", border: "border-scientist", prompt: "Invent something bold. (Max 20 words)" },
+                { name: "SAFETY", color: "text-green-400", border: "border-safety", prompt: "Check danger. (Max 20 words)" },
+                { name: "LOGIC", color: "text-purple-400", border: "border-logic", prompt: "Check feasibility. (Max 20 words)" }
             ];
             
-            const bot = BOTS[turn];
-            const thinkingId = `think-${Date.now()}`;
-            addBubble(bot.name, "...", bot.color, bot.border, thinkingId);
+            const bot = bots[turn];
+            const id = `t-${Date.now()}`;
+            addBubble(bot.name, "...", bot.color, bot.border, id);
 
             try {
-                const response = await fetch(`${SERVER_URL}/chat`, {
+                const res = await fetch(`${SERVER}/chat`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    mode: 'cors', // Explicitly allow cross-origin
-                    body: JSON.stringify({ prompt: `You are ${bot.name}. ${bot.prompt}` })
+                    body: JSON.stringify({ prompt: `As ${bot.name}: ${bot.prompt}. Topic: ${context[context.length-1].content}` })
                 });
-
-                if (!response.ok) throw new Error("Server Status: " + response.status);
-
-                const data = await response.json();
-                const text = data.reply;
-
-                document.getElementById(thinkingId).innerHTML = marked.parse(text);
-
-                if (text.toLowerCase().includes("kill")) { isLooping = false; alert("Safety Filter Triggered"); return; }
-                
-                context.push({ role: "assistant", content: `${bot.name}: ${text}` });
+                const data = await res.json();
+                document.getElementById(id).innerHTML = marked.parse(data.reply);
+                context.push({ role: "assistant", content: data.reply });
                 turn = (turn + 1) % 3;
-                
-                if (isLooping) setTimeout(processTurn, 1000);
-
+                if (isLooping) setTimeout(process, 1500);
             } catch (err) {
-                console.error(err);
                 isLooping = false;
-                document.getElementById(thinkingId).innerText = "ERROR: Connection Lost.";
-                ui.cloudStatus.innerText = "OFFLINE";
-                ui.cloudStatus.className = "text-[10px] text-red-500 border border-red-900 px-2 py-1 rounded";
+                document.getElementById(id).innerText = "CONNECTION LOST.";
             }
         }
 
         function addBubble(name, text, color, border, id=null) {
             const div = document.createElement('div');
-            div.className = `p-3 mb-3 rounded-r-lg rounded-bl-lg msg-enter ${border}`;
-            div.innerHTML = `<div class="text-[10px] font-bold ${color} mb-1 tracking-wider">${name}</div><div id="${id || ''}" class="text-sm text-zinc-300 leading-relaxed font-sans">${marked.parse(text)}</div>`;
+            div.className = `p-3 mb-3 msg-enter ${border}`;
+            div.innerHTML = `<div class="text-[10px] font-bold ${color} mb-1">${name}</div><div id="${id || ''}" class="text-sm text-zinc-300">${marked.parse(text)}</div>`;
             ui.feed.appendChild(div);
             ui.feed.scrollTo({ top: ui.feed.scrollHeight, behavior: 'smooth' });
         }
     </script>
 </body>
 </html>
-
