@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FazeAI | v9.3 Stable</title>
+    <title>FazeAI | Auto-Think v9.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
@@ -13,23 +13,13 @@
         .fade-enter { animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(10px); }
         @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
 
-        /* NEWS ANIMATION */
-        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .news-banner { animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; border-left: 4px solid #ef4444; }
-
-        /* CHAOS ANIMATIONS (FIXED: Applied to inner elements, not body) */
-        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0px); } }
-        .chaos-mode .bubble-wrap { animation: float 3s ease-in-out infinite; }
-        /* Glitch effect removed from body to fix button clicking */
-        .chaos-mode #feed { filter: contrast(120%) hue-rotate(90deg); } 
-        .chaos-mode header { background-color: #dc2626 !important; }
-
         /* BUBBLE STYLES */
         .bubble-scientist { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; border-radius: 4px 20px 20px 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .bubble-safety { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; border-radius: 20px 4px 20px 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .bubble-logic { background: #faf5ff; border: 1px solid #e9d5ff; color: #581c87; border-radius: 20px 20px 20px 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .bubble-human { background: #fff7ed; border: 1px solid #fed7aa; color: #7c2d12; border-radius: 20px 4px 20px 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .bubble-user { background: #ffffff; border: 1px solid #e2e8f0; color: #0f172a; border-radius: 20px 20px 4px 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .bubble-system { background: #fee2e2; border: 1px solid #ef4444; color: #b91c1c; font-weight: bold; text-align: center; border-radius: 12px; }
     </style>
 </head>
 <body id="main-body" class="h-screen flex flex-col overflow-hidden relative bg-slate-50">
@@ -37,9 +27,9 @@
     <div id="auth-screen" class="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center p-6 transition-opacity duration-300">
         <div class="w-full max-w-md space-y-6">
             <div class="text-center">
-                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-900 text-white text-3xl mb-4 shadow-xl">⚖️</div>
-                <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Faze<span class="text-slate-500">Legal</span></h1>
-                <p class="text-xs text-slate-400 font-bold tracking-widest uppercase mt-2">v9.3 Stable</p>
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-900 text-white text-3xl mb-4 shadow-xl">🧠</div>
+                <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Faze<span class="text-slate-500">Auto</span></h1>
+                <p class="text-xs text-slate-400 font-bold tracking-widest uppercase mt-2">v9.4 Auto-Think</p>
             </div>
             
             <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4 shadow-sm">
@@ -79,7 +69,7 @@
                 <p>10. I will not input real personal data.</p>
                 <p>11. I understand "Chaos Mode" is a simulation.</p>
                 <p>12. I will not use this to bully or harass.</p>
-                <p>13. I agree that "Breaking News" is fake.</p>
+                <p>13. I agree that AI chats are public.</p>
                 <p>14. I will not generate political deepfakes.</p>
                 <p>15. I accept that chats are public on GitHub.</p>
                 <p>16. I will report bugs instead of exploiting them.</p>
@@ -98,7 +88,7 @@
         <header class="flex justify-between items-center p-4 bg-slate-900 text-white shadow-md z-10 transition-colors duration-500">
             <button onclick="toggleMenu()" class="p-2 -ml-2 hover:bg-slate-800 rounded-full transition"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
             <div class="flex items-center gap-2">
-                <span class="font-bold text-lg tracking-tight">Faze v9.3</span>
+                <span class="font-bold text-lg tracking-tight">Faze v9.4</span>
                 <span id="status-badge" class="px-2 py-0.5 rounded-full bg-green-900 text-green-100 text-[9px] font-bold tracking-widest uppercase border border-green-700">ONLINE</span>
             </div>
             <div id="user-badge" class="w-9 h-9 rounded-full bg-white text-slate-900 font-bold text-sm shadow-md flex items-center justify-center border-2 border-slate-700">U</div>
@@ -106,10 +96,18 @@
 
         <div id="menu-drawer" class="fixed inset-y-0 left-0 w-64 bg-white shadow-2xl transform -translate-x-full transition-transform duration-300 z-50 p-6 flex flex-col gap-4 border-r border-slate-200">
             <h2 class="font-bold text-xl mb-4 text-slate-800">Control Panel</h2>
-            <button onclick="activateChaos()" class="p-4 bg-red-50 text-red-600 border border-red-100 rounded-xl text-left text-sm font-bold hover:bg-red-100 hover:scale-105 transition-all shadow-sm flex items-center gap-2">🔥 TRIGGER CHAOS</button>
+            
+            <button onclick="activateAutoThink()" class="p-4 bg-purple-50 text-purple-600 border border-purple-100 rounded-xl text-left text-sm font-bold hover:bg-purple-100 hover:scale-105 transition-all shadow-sm flex items-center gap-2">
+                🧠 AUTO THINK (AI LOOP)
+            </button>
+
+            <button onclick="activateChaos()" class="p-4 bg-red-50 text-red-600 border border-red-100 rounded-xl text-left text-sm font-bold hover:bg-red-100 hover:scale-105 transition-all shadow-sm flex items-center gap-2">
+                🔥 TRIGGER CHAOS (NO VFX)
+            </button>
+            
             <button onclick="location.reload()" class="p-3 bg-gray-100 rounded-lg text-left text-sm font-medium hover:bg-gray-200">🔄 System Reset</button>
             <button onclick="toggleMenu()" class="p-3 bg-slate-50 text-slate-600 rounded-lg text-left text-sm font-medium">Close Menu</button>
-            <div class="mt-auto text-[10px] text-gray-400">Stable Build v9.3</div>
+            <div class="mt-auto text-[10px] text-gray-400">Auto-Think Module Installed</div>
         </div>
 
         <div id="welcome-hero" class="flex-1 flex flex-col px-6 pt-12 transition-all duration-500">
@@ -147,16 +145,16 @@
         let history = [];
         let userName = "User";
         let loopTimer = null;
-        let totalMessages = 0;
         let termsAccepted = false;
-
-        const breakingNews = [
-            "📉 MARKET CRASH: Tech stocks plummet 45% amid fears of new invention!",
-            "🚫 GOVERNMENT BAN: United Nations holds emergency summit to discuss global ban!",
-            "🗣️ MASS PROTESTS: 10 Million people march in London against this technology!",
-            "⚠️ SCIENTIFIC ALERT: Anomaly detected in Earth's magnetic field!",
-            "🛑 INTERNET BLACKOUT: Global servers crashing due to data overload!",
-            "🛸 ALIEN SIGNAL: Radio telescope intercepts message regarding this tech!"
+        
+        // Random Topics for Auto-Think
+        const autoTopics = [
+            "Dyson Sphere Construction",
+            "Human Consciousness Upload",
+            "Deep Ocean Cities",
+            "Terraforming Mars",
+            "Nanobot Immune Systems",
+            "Global Weather Control"
         ];
 
         function showTerms() { document.getElementById('terms-modal').classList.remove('hidden'); }
@@ -194,19 +192,24 @@
 
         function toggleMenu() { document.getElementById('menu-drawer').classList.toggle('-translate-x-full'); }
 
-        // --- FIXED CHAOS MODE ---
+        // --- NEW: AUTO THINK ---
+        function activateAutoThink() {
+            toggleMenu();
+            const randomTopic = autoTopics[Math.floor(Math.random() * autoTopics.length)];
+            
+            document.getElementById('status-badge').innerText = "AUTOPILOT";
+            document.getElementById('status-badge').className = "px-2 py-0.5 rounded-full bg-purple-600 text-white text-[9px] font-bold tracking-widest uppercase animate-pulse";
+            
+            quickPrompt(randomTopic);
+            addBubble("SYSTEM", `🧠 AUTO-THINK INITIATED: Analyzing '${randomTopic}'`, "bubble-system", false);
+        }
+
+        // --- FIXED CHAOS MODE (No Visual Glitches) ---
         function activateChaos() {
             toggleMenu();
-            // Apply class to BODY for visuals, but use scoped CSS for transforms
-            document.body.classList.add('chaos-mode'); 
-            
             document.getElementById('status-badge').innerText = "⚠ CHAOS";
             document.getElementById('status-badge').className = "px-2 py-0.5 rounded-full bg-red-600 text-white text-[9px] font-bold tracking-widest uppercase animate-pulse";
-            
-            // AUTO START THE LOOP
-            quickPrompt("GENERATE UNSTABLE CHAOS INVENTION");
-            
-            addBubble("SYSTEM", "⚠️ REALITY FAILURE DETECTED: LOW GRAVITY ENABLED.", "bg-red-500 text-white font-bold text-center border-none shadow-lg", false);
+            addBubble("SYSTEM", "⚠️ SYSTEM ANOMALY: CHAOS PROTOCOLS ACTIVE.", "bubble-system", false);
         }
 
         function quickPrompt(text) { document.getElementById('input-box').value = text; handleAction(); }
@@ -236,8 +239,9 @@
                 document.getElementById('icon-send').classList.add('hidden');
                 document.getElementById('icon-stop').classList.remove('hidden');
                 
-                // Keep chaos badge if active
-                if(!document.body.classList.contains('chaos-mode')){
+                // Only reset badge if not in special modes
+                const currentStatus = document.getElementById('status-badge').innerText;
+                if(currentStatus !== "⚠ CHAOS" && currentStatus !== "AUTOPILOT") {
                     document.getElementById('status-badge').innerText = "LIVE";
                     document.getElementById('status-badge').className = "px-2 py-0.5 rounded-full bg-green-600 text-white text-[9px] font-bold tracking-widest uppercase animate-pulse";
                 }
@@ -248,14 +252,6 @@
 
         async function runBot() {
             if (!active) return;
-
-            if (totalMessages > 0 && totalMessages % 10 === 0) {
-                const randomHeadline = breakingNews[Math.floor(Math.random() * breakingNews.length)];
-                addNewsBanner(randomHeadline);
-                totalMessages++;
-                if (active) loopTimer = setTimeout(runBot, 4000); 
-                return;
-            }
 
             const bots = [
                 { name: "SCIENTIST", role: "Visionary", icon: "🧪", style: "bubble-scientist", prompt: "Propose a detailed invention (approx 50 words)." },
@@ -282,7 +278,6 @@
                 if (history.length > 6) history.shift();
 
                 turn = (turn + 1) % 4;
-                totalMessages++; 
                 if (active) loopTimer = setTimeout(runBot, 5000); 
 
             } catch (e) {
@@ -291,20 +286,9 @@
             }
         }
 
-        function addNewsBanner(text) {
-            const div = document.createElement('div');
-            div.className = "w-full my-4 bg-white border border-red-100 shadow-md p-4 rounded-lg news-banner flex items-center gap-3";
-            div.innerHTML = `
-                <div class="bg-red-600 text-white font-black text-[10px] px-2 py-1 rounded uppercase tracking-widest animate-pulse">BREAKING</div>
-                <div class="text-sm font-bold text-slate-800">${text}</div>
-            `;
-            document.getElementById('feed').appendChild(div);
-            document.getElementById('feed').scrollTo({ top: 10000, behavior: 'smooth' });
-        }
-
         function addBubble(name, text, style, isUser, id=null, icon="", role="") {
             const wrapper = document.createElement('div');
-            wrapper.className = `w-full flex flex-col ${isUser ? 'items-end' : 'items-start'} fade-enter bubble-wrap`;
+            wrapper.className = `w-full flex flex-col ${isUser ? 'items-end' : 'items-start'} fade-enter`;
             if (!isUser) {
                 wrapper.innerHTML = `
                     <div class="flex items-center gap-1.5 mb-1 ml-1">
